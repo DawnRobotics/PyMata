@@ -228,7 +228,15 @@ class PyMataCommandHandler(threading.Thread):
 
         threading.Thread.__init__(self)
         self.daemon = True
+        
+        self.stop_event = threading.Event()
 
+    def stop( self ):
+        self.stop_event.set()
+
+    def is_stopped( self ):
+        return self.stop_event.is_set()
+        
     def auto_discover_board(self):
         """
         This method will allow up to 30 seconds for discovery (communicating with) an Arduino board
@@ -691,7 +699,7 @@ class PyMataCommandHandler(threading.Thread):
         self.command_dispatch.update({self.PIN_STATE_RESPONSE: [self.pin_state_response, 2]})
         self.command_dispatch.update({self.ANALOG_MAPPING_RESPONSE: [self.analog_mapping_response, 2]})
 
-        while 1:  # a forever loop
+        while not self.is_stopped():
             if len(self.command_deque):
                 # get next byte from the deque and process it
                 data = self.command_deque.popleft()

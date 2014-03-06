@@ -88,11 +88,39 @@ class PyMata:
 
 
     #noinspection PyPep8Naming
-    def __init__(self, port_id='/dev/ttyACM0'):
+    def __init__(self, port_id='/dev/ttyACM0', program_if_needed=True):
         """
-        The constructor instantiates the entire interface. It starts the operational threads for the serial
+        The constructor tries to connect to an Arduino or Arduino compatible running
+        Firmata. If Firmata is not found on the Arduino, then we can optionally try to
+        program the Arduino with the Firmata sketch
+        @param port_id: Communications port specifier (COM3, /dev/ttyACM0, etc)
+        @param program_if_needed: Attempt to upload the Firmata sketch if it's not found
+                        on the Arduino.
+        """
+        
+        if not self.connect_to_firmata( port_id ):
+            
+            able_to_connect = False
+            
+            if program_if_needed:
+                if not self.upload_firmata_sketch( port_id ):
+                    
+                    raise Exception( "Unable to upload Firmata sketch" )
+                
+                else:
+                    
+                    able_to_connect = self.connect_to_firmata( port_id )
+                    
+            if not able_to_connect:
+                
+                raise Exception( "Unable to connect to Firmata" )
+        
+    def connect_to_firmata( port_id ):
+        """
+        This routine instantiates the entire interface. It starts the operational threads for the serial
         interface as well as for the command handler.
         @param port_id: Communications port specifier (COM3, /dev/ttyACM0, etc)
+        @return:        True if the connection was successful and False otherwise
         """
         # Currently only serial communication over USB is supported, but in the future
         # wifi and other transport mechanism support is anticipated
@@ -170,10 +198,17 @@ class PyMata:
 
         if not self._command_handler.auto_discover_board():
             # board was not found so shutdown
-            print "Board Auto Discovery Failed!, Shutting Down"
-            self._arduino.close()
-            time.sleep(2)
-            sys.exit(0)
+            print "Board Auto Discovery Failed!"
+            self._command_handler.stop()
+            self._arduino.stop()
+            self._command_handler.join()
+            self._arduino.join()
+            
+            return False
+            
+        else:
+            
+            return True
 
     def analog_mapping_query(self):
         """

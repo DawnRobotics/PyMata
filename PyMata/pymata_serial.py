@@ -50,7 +50,14 @@ class PyMataSerial(threading.Thread):
         self.daemon = True
         self.arduino = serial.Serial(self.port_id, self.baud_rate,
                                      timeout=int(self.timeout))
+                                     
+        self.stop_event = threading.Event()
 
+    def stop( self ):
+        self.stop_event.set()
+
+    def is_stopped( self ):
+        return self.stop_event.is_set()
 
     def open(self):
         """
@@ -71,7 +78,7 @@ class PyMataSerial(threading.Thread):
         except Exception:
             # opened failed - will report back to caller
             raise
-
+            
     def close(self):
         """
             Close the serial port
@@ -85,14 +92,14 @@ class PyMataSerial(threading.Thread):
             return: None
         """
         self.arduino.write(data)
-
+        
     def run(self):
         """
         This method continually runs. If an incoming character is available on the serial port
         it is read and placed on the _command_deque
         @return: Never Returns
         """
-        while 1:
+        while not self.is_stopped():
             # we can get an OSError: [Errno9] Bad file descriptor when shutting down
             # just ignore it
             try:
@@ -101,6 +108,8 @@ class PyMataSerial(threading.Thread):
                     self.command_deque.append(ord(c))
             except OSError:
                 pass
+            
+        self.close()
 
 
 
