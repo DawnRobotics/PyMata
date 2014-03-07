@@ -2,6 +2,15 @@
 
 from distutils.core import setup
 
+def gen_data_files( directory ):
+    import os.path
+    results = []
+    for root, dirs, files in os.walk( directory ):
+        results.extend([os.path.join(root, f) for f in files])
+    return results
+
+pymata_package_data = gen_data_files('ArduinoSketch')
+
 setup(
     name='PyMata',
     packages=['PyMata'],
@@ -12,6 +21,7 @@ setup(
     install_requires=['pyserial'],
     url='https://github.com/MrYsLab/PyMata',
     download_url = 'https://github.com/MrYsLab/PyMata',
+    package_data={'PyMata': pymata_package_data},
     keywords = ['Firmata', 'Arduino', 'Protocol'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',

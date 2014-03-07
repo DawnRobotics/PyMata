@@ -29,7 +29,9 @@ from pymata_serial import PyMataSerial
 from pymata_command_handler import PyMataCommandHandler
 
 SCRIPT_PATH = os.path.dirname( __file__ )
-SKETCHES_DIR = SCRIPT_PATH + "/../ArduinoSketch"
+SKETCHES_DIR = SCRIPT_PATH + "/ArduinoSketch"
+if not os.path.exists( SKETCHES_DIR ):
+    SKETCHES_DIR = SCRIPT_PATH + "/../ArduinoSketch"    # Assume library hasn't been installed
 
 STANDARD_FIRMATA_DIR = SKETCHES_DIR + "/Firmata/examples/StandardFirmata"
 STANDARD_FIRMATA_LIBS = [
