@@ -22,9 +22,30 @@ from collections import deque
 import threading
 import sys
 import time
+import os.path
 
+import ino_uploader
 from pymata_serial import PyMataSerial
 from pymata_command_handler import PyMataCommandHandler
+
+SCRIPT_PATH = os.path.dirname( __file__ )
+SKETCHES_DIR = SCRIPT_PATH + "/../ArduinoSketch"
+
+STANDARD_FIRMATA_DIR = SKETCHES_DIR + "/Firmata/examples/StandardFirmata"
+STANDARD_FIRMATA_LIBS = [
+    SKETCHES_DIR + "/Firmata"
+]
+
+NOT_SO_STANDARD_FIRMATA_DIR = SKETCHES_DIR + "/NotSoStandardFirmata/examples/NotSoStandardFirmata"
+NOT_SO_STANDARD_FIRMATA_LIBS = [
+    SKETCHES_DIR + "/AdaEncoder",
+    SKETCHES_DIR + "/ByteBuffer",
+    SKETCHES_DIR + "/cbiface",
+    SKETCHES_DIR + "/cppfix",
+    SKETCHES_DIR + "/MemoryFree",
+    SKETCHES_DIR + "/NotSoStandardFirmata",
+    SKETCHES_DIR + "/ooPinChangeInt"
+]
 
 # For report data formats refer to http://firmata.org/wiki/Protocol
 
@@ -86,36 +107,45 @@ class PyMata:
     digital_output_port_pins = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
 
+    STANDARD_FIRMATA = ( STANDARD_FIRMATA_DIR, STANDARD_FIRMATA_LIBS )
+    NOT_SO_STANDARD_FIRMATA = ( NOT_SO_STANDARD_FIRMATA_DIR, NOT_SO_STANDARD_FIRMATA_LIBS )
 
     #noinspection PyPep8Naming
-    def __init__(self, port_id='/dev/ttyACM0', program_if_needed=True):
+    def __init__(self, port_id='/dev/ttyACM0', max_wait_time=30, 
+        program_if_needed=True, board_model="uno", firmata_type=NOT_SO_STANDARD_FIRMATA ):
         """
         The constructor tries to connect to an Arduino or Arduino compatible running
         Firmata. If Firmata is not found on the Arduino, then we can optionally try to
         program the Arduino with the Firmata sketch
         @param port_id: Communications port specifier (COM3, /dev/ttyACM0, etc)
+        @param max_wait_time: Maximum time to wait when trying to connect to Firmata
         @param program_if_needed: Attempt to upload the Firmata sketch if it's not found
-                        on the Arduino.
+            on the Arduino.
+        @param board_model: The type of Arduino being used. This is only needed if the
+            board is to be programmed. Run 'ino list-models' at the command line for a
+            list of available boards.
+        @param firmata_type: A directory containing the firmata sketch, and a list of supporting
+            libs that are used when uploading firmata
         """
         
-        if not self.connect_to_firmata( port_id ):
+        if not self.connect_to_firmata( port_id, max_wait_time ):
             
             able_to_connect = False
             
             if program_if_needed:
-                if not self.upload_firmata_sketch( port_id ):
+                if not self.upload_firmata_sketch( port_id, board_model, firmata_type ):
                     
                     raise Exception( "Unable to upload Firmata sketch" )
                 
                 else:
                     
-                    able_to_connect = self.connect_to_firmata( port_id )
+                    able_to_connect = self.connect_to_firmata( port_id, max_wait_time )
                     
             if not able_to_connect:
                 
                 raise Exception( "Unable to connect to Firmata" )
         
-    def connect_to_firmata( port_id ):
+    def connect_to_firmata( self, port_id, max_wait_time ):
         """
         This routine instantiates the entire interface. It starts the operational threads for the serial
         interface as well as for the command handler.
@@ -192,11 +222,11 @@ class PyMata:
         # Command handler should now be prepared to receive replies from the Arduino, so go ahead
         # detect the Arduino board
 
-        print 'Please wait while Arduino is being detected. This can take up to 30 seconds ...'
+        print 'Please wait while Arduino is being detected. This can take up to {0} seconds ...'.format( max_wait_time )
 
         # perform board auto discovery
 
-        if not self._command_handler.auto_discover_board():
+        if not self._command_handler.auto_discover_board( max_wait_time ):
             # board was not found so shutdown
             print "Board Auto Discovery Failed!"
             self._command_handler.stop()
@@ -210,6 +240,15 @@ class PyMata:
             
             return True
 
+    def upload_firmata_sketch( self, port_id, board_model, firmata_type ):
+        """
+        Uses the Ino library to upload Firmata to the Arduino attached to the given serial port
+        @param port_id The serial port to use
+        """
+        
+        firmata_dir, firmata_libs = firmata_type
+        return ino_uploader.upload( firmata_dir, port_id, board_model, firmata_libs )
+            
     def analog_mapping_query(self):
         """
         Send an analog mapping query message via sysex. Client retrieves the results with a

@@ -237,19 +237,20 @@ class PyMataCommandHandler(threading.Thread):
     def is_stopped( self ):
         return self.stop_event.is_set()
         
-    def auto_discover_board(self):
+    def auto_discover_board(self, max_wait_time=30):
         """
-        This method will allow up to 30 seconds for discovery (communicating with) an Arduino board
+        This method will allow up to max_wait_time seconds for discovery (communicating with) an Arduino board
         and then will determine a pin configuration table for the board.
+        @param max_wait_time: The maximum time to wait for discovery of the board
         @return: True if board is successfully discovered or False upon timeout
         """
         # get current time
         start_time = time.time()
 
-        # wait for up to 30 seconds for a successful capability query to occur
+        # wait for up to max_wait_time seconds for a successful capability query to occur
 
         while len(self.analog_mapping_query_results) == 0:
-            if time.time() - start_time > 30:
+            if time.time() - start_time > max_wait_time:
                 return False
                 # keep sending out a capability query until there is a response
             self.send_sysex(self.ANALOG_MAPPING_QUERY, None)
