@@ -245,7 +245,7 @@ class PyMata:
     def upload_firmata_sketch( self, port_id, board_model, firmata_type ):
         """
         Uses the Ino library to upload Firmata to the Arduino attached to the given serial port
-        @param port_id The serial port to use
+        @param port_id: The serial port to use
         """
         
         firmata_dir, firmata_libs = firmata_type

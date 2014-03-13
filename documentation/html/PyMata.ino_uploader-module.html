@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>PyMata.pymata_command_handler</title>
+  <title>PyMata.ino_uploader</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 </head>
@@ -38,7 +38,7 @@
     <td width="100%">
       <span class="breadcrumbs">
         <a href="PyMata-module.html">Package&nbsp;PyMata</a> ::
-        Module&nbsp;pymata_command_handler
+        Module&nbsp;ino_uploader
       </span>
     </td>
     <td>
@@ -48,17 +48,17 @@
     onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
         <tr><td align="right"><span class="options"
             >[<a href="frames.html" target="_top">frames</a
-            >]&nbsp;|&nbsp;<a href="PyMata.pymata_command_handler-module.html"
+            >]&nbsp;|&nbsp;<a href="PyMata.ino_uploader-module.html"
             target="_top">no&nbsp;frames</a>]</span></td></tr>
       </table>
     </td>
   </tr>
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
-<h1 class="epydoc">Module pymata_command_handler</h1><p class="nomargin-top"><span class="codelink"><a href="PyMata.pymata_command_handler-pysrc.html">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Module ino_uploader</h1><p class="nomargin-top"><span class="codelink"><a href="PyMata.ino_uploader-pysrc.html">source&nbsp;code</a></span></p>
 <hr />
 <div class="fields">      <p><strong>Author:</strong>
-        Copyright (c) 2013 Alan Yorinks All rights reserved.
+        Copyright (c) 2014 Dawn Robotics Ltd All rights reserved.
       </p>
 </div><!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
@@ -81,9 +81,98 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="PyMata.pymata_command_handler.PyMataCommandHandler-class.html" class="summary-name">PyMataCommandHandler</a><br />
-      This class handles all data interchanges with Firmata The receive 
-        loop runs in its own thread.
+        <a href="PyMata.ino_uploader.LibraryInfo-class.html" class="summary-name">LibraryInfo</a><br />
+      Holds information (src directory, target directory etc) about a 
+        library needed for a sketch
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_ino_uploader_user_dir"></a><span class="summary-sig-name">get_ino_uploader_user_dir</span>()</span><br />
+      Gets the name of the directory used by ino to build the sketches in</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="PyMata.ino_uploader-pysrc.html#get_ino_uploader_user_dir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="is_ino_available"></a><span class="summary-sig-name">is_ino_available</span>()</span><br />
+      Tests to see if Ino is available on this system</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="PyMata.ino_uploader-pysrc.html#is_ino_available">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="build_lib_info_list"></a><span class="summary-sig-name">build_lib_info_list</span>(<span class="summary-sig-arg">lib_dirs</span>,
+        <span class="summary-sig-arg">ino_uploader_lib_dir</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="PyMata.ino_uploader-pysrc.html#build_lib_info_list">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="upload"></a><span class="summary-sig-name">upload</span>(<span class="summary-sig-arg">sketch_dir</span>,
+        <span class="summary-sig-arg">serial_port_name</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">/dev/ttyUSB0</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">board_model</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">uno</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">lib_dirs</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">force_rebuild</span>=<span class="summary-sig-default">False</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="PyMata.ino_uploader-pysrc.html#upload">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
     </td>
   </tr>
 </table>
@@ -108,8 +197,29 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="PyMata.pymata_command_handler-module.html#__author__" class="summary-name">__author__</a> = <code title="'Copyright (c) 2013 Alan Yorinks All rights reserved.'"><code class="variable-quote">'</code><code class="variable-string">Copyright (c) 2013 Alan Yorinks All rights reser</code><code class="variable-ellipsis">...</code></code><br />
-      Copyright (c) 2013-14 Alan Yorinks All rights reserved.
+        <a href="PyMata.ino_uploader-module.html#__author__" class="summary-name">__author__</a> = <code title="'Copyright (c) 2014 Dawn Robotics Ltd All rights reserved.'"><code class="variable-quote">'</code><code class="variable-string">Copyright (c) 2014 Dawn Robotics Ltd All rights </code><code class="variable-ellipsis">...</code></code><br />
+      Copyright (c) 2014 Dawn Robotics Ltd All rights reserved.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="INO_PATH"></a><span class="summary-name">INO_PATH</span> = <code title="'/usr/local/bin/ino'"><code class="variable-quote">'</code><code class="variable-string">/usr/local/bin/ino</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="DEFAULT_SERIAL_PORT_NAME"></a><span class="summary-name">DEFAULT_SERIAL_PORT_NAME</span> = <code title="'/dev/ttyUSB0'"><code class="variable-quote">'</code><code class="variable-string">/dev/ttyUSB0</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="DEFAULT_BOARD_MODEL"></a><span class="summary-name">DEFAULT_BOARD_MODEL</span> = <code title="'uno'"><code class="variable-quote">'</code><code class="variable-string">uno</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr>
@@ -144,7 +254,7 @@
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <h3 class="epydoc">__author__</h3>
-  <p>Copyright (c) 2013-14 Alan Yorinks All rights reserved.</p>
+  <p>Copyright (c) 2014 Dawn Robotics Ltd All rights reserved.</p>
   <p>This program is free software; you can redistribute it and/or modify 
   it under the terms of the GNU  General Public License as published by the
   Free Software Foundation; either version 3 of the License, or (at your 
@@ -162,7 +272,7 @@
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-quote">'</code><code class="variable-string">Copyright (c) 2013 Alan Yorinks All rights reserved.</code><code class="variable-quote">'</code>
+<code class="variable-quote">'</code><code class="variable-string">Copyright (c) 2014 Dawn Robotics Ltd All rights reserved.</code><code class="variable-quote">'</code>
 </pre></td></tr></table>
 </dd>
   </dl>

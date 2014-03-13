@@ -1,6 +1,21 @@
 PyMata
 ======
 
+Version 1.54_DR_1
+-----------------
+
+This is a fork made from the mainline of PyMata, for changes made by Dawn Robotics Ltd. If the changes pass muster, then hopefully 
+they willl be merged back into the mainline at some point. :)
+
+The main change is that if you have [Ino](http://inotool.org/) installed on your computer then when you initialise PyMata, if Firmata is not 
+already installed on your Arduino, then the Firmata sketch will be automagically compiled and uploaded.
+
+To install Ino on linux, run the following commands
+
+    sudo apt-get update
+    sudo apt-get install python-pip python-dev python-serial
+    sudo pip install ino
+
 Version 1.54
 ------------
 Support for monitoring up to 6 simultaneous HC-SR04 Ping Devices. This feature requires the supplied Arduino sketch

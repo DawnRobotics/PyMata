@@ -120,10 +120,43 @@ threading._Verbose --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="PyMata.pymata_command_handler.PyMataCommandHandler-class.html#auto_discover_board" class="summary-sig-name">auto_discover_board</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      This method will allow up to 30 seconds for discovery (communicating 
-      with) an Arduino board and then will determine a pin configuration 
-      table for the board.</td>
+          <td><span class="summary-sig"><a name="stop"></a><span class="summary-sig-name">stop</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="PyMata.pymata_command_handler-pysrc.html#PyMataCommandHandler.stop">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="is_stopped"></a><span class="summary-sig-name">is_stopped</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="PyMata.pymata_command_handler-pysrc.html#PyMataCommandHandler.is_stopped">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="PyMata.pymata_command_handler.PyMataCommandHandler-class.html#auto_discover_board" class="summary-sig-name">auto_discover_board</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">max_wait_time</span>=<span class="summary-sig-default">30</span>)</span><br />
+      This method will allow up to max_wait_time seconds for discovery 
+      (communicating with) an Arduino board and then will determine a pin 
+      configuration table for the board.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="PyMata.pymata_command_handler-pysrc.html#PyMataCommandHandler.auto_discover_board">source&nbsp;code</a></span>
             
@@ -406,7 +439,8 @@ threading._Verbose --+
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="PyMata.pymata_command_handler.PyMataCommandHandler-class.html#system_reset" class="summary-sig-name">system_reset</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="PyMata.pymata_command_handler.PyMataCommandHandler-class.html#system_reset" class="summary-sig-name">system_reset</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">reset_sleep_time</span>=<span class="summary-sig-default">2</span>)</span><br />
       Send the reset command to the Arduino.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="PyMata.pymata_command_handler-pysrc.html#PyMataCommandHandler.system_reset">source&nbsp;code</a></span>
@@ -1215,17 +1249,22 @@ threading._Verbose --+
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">auto_discover_board</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">auto_discover_board</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">max_wait_time</span>=<span class="sig-default">30</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="PyMata.pymata_command_handler-pysrc.html#PyMataCommandHandler.auto_discover_board">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>This method will allow up to 30 seconds for discovery (communicating 
-  with) an Arduino board and then will determine a pin configuration table 
-  for the board.</p>
+  <p>This method will allow up to max_wait_time seconds for discovery 
+  (communicating with) an Arduino board and then will determine a pin 
+  configuration table for the board.</p>
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>max_wait_time</code></strong> - The maximum time to wait for discovery of the board</li>
+    </ul></dd>
     <dt>Returns:</dt>
         <dd>True if board is successfully discovered or False upon timeout</dd>
   </dl>
@@ -1617,7 +1656,8 @@ threading._Verbose --+
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">system_reset</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">system_reset</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">reset_sleep_time</span>=<span class="sig-default">2</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="PyMata.pymata_command_handler-pysrc.html#PyMataCommandHandler.system_reset">source&nbsp;code</a></span>&nbsp;
@@ -1815,7 +1855,7 @@ threading._Verbose --+
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Sun Dec 29 17:11:31 2013
+    Generated by Epydoc 3.0.1 on Thu Mar 13 14:52:31 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
