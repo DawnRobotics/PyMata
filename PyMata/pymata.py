@@ -297,7 +297,13 @@ class PyMata:
         This method will close the transport (serial port) and exit
         @return: No return value, but sys.exit(0) is called.
         """
-        self._arduino.close()
+        self.reset( reset_sleep_time=0.1 )
+        
+        self._command_handler.stop()
+        self._arduino.stop()
+        self._command_handler.join()
+        self._arduino.join()
+        
         print "PyMata close(): Calling sys.exit(0): Hope to see you soon!"
         sys.exit(0)
 
@@ -635,7 +641,7 @@ class PyMata:
         """
         self._command_handler.send_sysex(self._command_handler.REPORT_FIRMWARE, None)
 
-    def reset(self):
+    def reset(self,reset_sleep_time=2):
         """
         This command sends a reset message to the Arduino. The response tables will be reinitialized
         @return: No return value.
@@ -650,7 +656,7 @@ class PyMata:
                 self.analog_write(pin, 0)
             else:
                 self.digital_write(pin, 0)
-        self._command_handler.system_reset()
+        self._command_handler.system_reset(reset_sleep_time)
 
     def set_analog_latch(self, pin, threshold_type, threshold_value):
         """

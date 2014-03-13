@@ -307,9 +307,8 @@ class PyMataCommandHandler(threading.Thread):
         @param threshold_type: ANALOG_LATCH_GT | ANALOG_LATCH_LT  | ANALOG_LATCH_GTE | ANALOG_LATCH_LTE
         @param threshold_value: numerical value
         """
-        self.data_lock.acquire(True)
-        self.analog_latch_table[pin] = [self.LATCH_ARMED, threshold_type, threshold_value, 0, 0]
-        self.data_lock.release()
+        with self.data_lock:
+            self.analog_latch_table[pin] = [self.LATCH_ARMED, threshold_type, threshold_value, 0, 0]
 
     def set_digital_latch(self, pin, threshold_type):
         """
@@ -317,10 +316,8 @@ class PyMataCommandHandler(threading.Thread):
         @param pin: digital pin number
         @param threshold_type: DIGITAL_LATCH_HIGH | DIGITAL_LATCH_LOW
         """
-        self.data_lock.acquire(True)
-        self.digital_latch_table[pin] = [self.LATCH_ARMED, threshold_type, 0, 0]
-        self.data_lock.release()
-
+        with self.data_lock:
+            self.digital_latch_table[pin] = [self.LATCH_ARMED, threshold_type, 0, 0]
 
     def get_analog_latch_data(self, pin):
         """
@@ -330,16 +327,16 @@ class PyMataCommandHandler(threading.Thread):
         @param pin:  pin number
         @return: [latch_state, latched_data, and time_stamp]
         """
-        self.data_lock.acquire(True)
-        pin_data = self.analog_latch_table[pin]
-        current_latch_data = [pin,
-                              pin_data[self.LATCH_STATE],
-                              pin_data[self.ANALOG_LATCHED_DATA],
-                              pin_data[self.ANALOG_TIME_STAMP]]
-        # if this is latched data, clear the latch table entry for this pin
-        if pin_data[self.LATCH_STATE] == self.LATCH_LATCHED:
-            self.analog_latch_table[pin] = [0, 0, 0, 0, 0]
-        self.data_lock.release()
+        with self.data_lock:
+            pin_data = self.analog_latch_table[pin]
+            current_latch_data = [pin,
+                                pin_data[self.LATCH_STATE],
+                                pin_data[self.ANALOG_LATCHED_DATA],
+                                pin_data[self.ANALOG_TIME_STAMP]]
+            # if this is latched data, clear the latch table entry for this pin
+            if pin_data[self.LATCH_STATE] == self.LATCH_LATCHED:
+                self.analog_latch_table[pin] = [0, 0, 0, 0, 0]
+                
         return current_latch_data
 
 
@@ -351,15 +348,15 @@ class PyMataCommandHandler(threading.Thread):
         @param pin:  pin number
         @return: [latch_state, latched_data, and time_stamp]
         """
-        self.data_lock.acquire(True)
-        pin_data = self.digital_latch_table[pin]
-        current_latch_data = [pin,
-                              pin_data[self.LATCH_STATE],
-                              pin_data[self.DIGITAL_LATCHED_DATA],
-                              pin_data[self.DIGITAL_TIME_STAMP]]
-        if pin_data[self.LATCH_STATE] == self.LATCH_LATCHED:
-            self.digital_latch_table[pin] = [0, 0, 0, 0]
-        self.data_lock.release()
+        with self.data_lock:
+            pin_data = self.digital_latch_table[pin]
+            current_latch_data = [pin,
+                                pin_data[self.LATCH_STATE],
+                                pin_data[self.DIGITAL_LATCHED_DATA],
+                                pin_data[self.DIGITAL_TIME_STAMP]]
+            if pin_data[self.LATCH_STATE] == self.LATCH_LATCHED:
+                self.digital_latch_table[pin] = [0, 0, 0, 0]
+
         return current_latch_data
 
 
@@ -398,63 +395,62 @@ class PyMataCommandHandler(threading.Thread):
         @param data: Message data from Firmata
         @return: No return value.
         """
-        self.data_lock.acquire(True)
+        with self.data_lock:
 
-        # convert MSB and LSB into an integer
-        self.analog_response_table[data[self.RESPONSE_TABLE_MODE]][self.RESPONSE_TABLE_PIN_DATA_VALUE] \
-            = (data[self.MSB] << 7) + data[self.LSB]
+            # convert MSB and LSB into an integer
+            self.analog_response_table[data[self.RESPONSE_TABLE_MODE]][self.RESPONSE_TABLE_PIN_DATA_VALUE] \
+                = (data[self.MSB] << 7) + data[self.LSB]
 
-        pin = data[0]
-        pin_response_data_data = self.analog_response_table[pin]
-        value = pin_response_data_data[self.RESPONSE_TABLE_PIN_DATA_VALUE]
-        # check if data is to be latched
-        # get the analog latching table entry for this pin
-        latching_entry = self.analog_latch_table[pin]
-        if latching_entry[self.LATCH_STATE] == self.LATCH_ARMED:
-            # Has the latching criteria been met
-            if latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.ANALOG_LATCH_GT:
-                if value > latching_entry[self.ANALOG_LATCH_DATA_TARGET]:
-                    updated_latch_entry = latching_entry
-                    updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
-                    updated_latch_entry[self.ANALOG_LATCHED_DATA] = value
-                    # time stamp it
-                    updated_latch_entry[self.ANALOG_TIME_STAMP] = time.time()
-                    self.analog_latch_table[pin] = updated_latch_entry
+            pin = data[0]
+            pin_response_data_data = self.analog_response_table[pin]
+            value = pin_response_data_data[self.RESPONSE_TABLE_PIN_DATA_VALUE]
+            # check if data is to be latched
+            # get the analog latching table entry for this pin
+            latching_entry = self.analog_latch_table[pin]
+            if latching_entry[self.LATCH_STATE] == self.LATCH_ARMED:
+                # Has the latching criteria been met
+                if latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.ANALOG_LATCH_GT:
+                    if value > latching_entry[self.ANALOG_LATCH_DATA_TARGET]:
+                        updated_latch_entry = latching_entry
+                        updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
+                        updated_latch_entry[self.ANALOG_LATCHED_DATA] = value
+                        # time stamp it
+                        updated_latch_entry[self.ANALOG_TIME_STAMP] = time.time()
+                        self.analog_latch_table[pin] = updated_latch_entry
+                    else:
+                        pass # haven't hit target
+                elif latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.ANALOG_LATCH_GTE:
+                    if value >= latching_entry[self.ANALOG_LATCH_DATA_TARGET]:
+                        updated_latch_entry = latching_entry
+                        updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
+                        updated_latch_entry[self.ANALOG_LATCHED_DATA] = value
+                        # time stamp it
+                        updated_latch_entry[self.ANALOG_TIME_STAMP] = time.time()
+                        self.analog_latch_table[pin] = updated_latch_entry
+                    else:
+                        pass # haven't hit target:
+                elif latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.ANALOG_LATCH_LT:
+                    if value < latching_entry[self.ANALOG_LATCH_DATA_TARGET]:
+                        updated_latch_entry = latching_entry
+                        updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
+                        updated_latch_entry[self.ANALOG_LATCHED_DATA] = value
+                        # time stamp it
+                        updated_latch_entry[self.ANALOG_TIME_STAMP] = time.time()
+                        self.analog_latch_table[pin] = updated_latch_entry
+                    else:
+                        pass # haven't hit target:
+                elif latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.ANALOG_LATCH_LTE:
+                    if value <= latching_entry[self.ANALOG_LATCH_DATA_TARGET]:
+                        updated_latch_entry = latching_entry
+                        updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
+                        updated_latch_entry[self.ANALOG_LATCHED_DATA] = value
+                        # time stamp it
+                        updated_latch_entry[self.ANALOG_TIME_STAMP] = time.time()
+                        self.analog_latch_table[pin] = updated_latch_entry
+                    else:
+                        pass # haven't hit target:
                 else:
-                    pass # haven't hit target
-            elif latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.ANALOG_LATCH_GTE:
-                if value >= latching_entry[self.ANALOG_LATCH_DATA_TARGET]:
-                    updated_latch_entry = latching_entry
-                    updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
-                    updated_latch_entry[self.ANALOG_LATCHED_DATA] = value
-                    # time stamp it
-                    updated_latch_entry[self.ANALOG_TIME_STAMP] = time.time()
-                    self.analog_latch_table[pin] = updated_latch_entry
-                else:
-                    pass # haven't hit target:
-            elif latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.ANALOG_LATCH_LT:
-                if value < latching_entry[self.ANALOG_LATCH_DATA_TARGET]:
-                    updated_latch_entry = latching_entry
-                    updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
-                    updated_latch_entry[self.ANALOG_LATCHED_DATA] = value
-                    # time stamp it
-                    updated_latch_entry[self.ANALOG_TIME_STAMP] = time.time()
-                    self.analog_latch_table[pin] = updated_latch_entry
-                else:
-                    pass # haven't hit target:
-            elif latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.ANALOG_LATCH_LTE:
-                if value <= latching_entry[self.ANALOG_LATCH_DATA_TARGET]:
-                    updated_latch_entry = latching_entry
-                    updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
-                    updated_latch_entry[self.ANALOG_LATCHED_DATA] = value
-                    # time stamp it
-                    updated_latch_entry[self.ANALOG_TIME_STAMP] = time.time()
-                    self.analog_latch_table[pin] = updated_latch_entry
-                else:
-                    pass # haven't hit target:
-            else:
-                pass
-        self.data_lock.release()
+                    pass
 
     def digital_message(self, data):
         """
@@ -472,33 +468,32 @@ class PyMataCommandHandler(threading.Thread):
         pin = port * 8
         for pin in range(pin, pin + 8):
             # shift through all the bit positions and set the digital response table
-            self.data_lock.acquire(True)
-            self.digital_response_table[pin][self.RESPONSE_TABLE_PIN_DATA_VALUE] = port_data & 0x01
-            # determine if the latch data table needs to be updated for each pin
-            latching_entry = self.digital_latch_table[pin]
-            if latching_entry[self.LATCH_STATE] == self.LATCH_ARMED:
-                if latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.DIGITAL_LATCH_LOW:
-                    if (port_data & 0x01) == 0:
-                        updated_latch_entry = latching_entry
-                        updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
-                        updated_latch_entry[self.DIGITAL_LATCHED_DATA] = self.DIGITAL_LATCH_LOW
-                        # time stamp it
-                        updated_latch_entry[self.DIGITAL_TIME_STAMP] = time.time()
-                    else:
-                        pass
-                elif latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.DIGITAL_LATCH_HIGH:
-                    if port_data & 0x01:
-                        updated_latch_entry = latching_entry
-                        updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
-                        updated_latch_entry[self.DIGITAL_LATCHED_DATA] = self.DIGITAL_LATCH_HIGH
-                        # time stamp it
-                        updated_latch_entry[self.DIGITAL_TIME_STAMP] = time.time()
-                    else:
-                        pass
-            else:
-                pass
+            with self.data_lock:
+                self.digital_response_table[pin][self.RESPONSE_TABLE_PIN_DATA_VALUE] = port_data & 0x01
+                # determine if the latch data table needs to be updated for each pin
+                latching_entry = self.digital_latch_table[pin]
+                if latching_entry[self.LATCH_STATE] == self.LATCH_ARMED:
+                    if latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.DIGITAL_LATCH_LOW:
+                        if (port_data & 0x01) == 0:
+                            updated_latch_entry = latching_entry
+                            updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
+                            updated_latch_entry[self.DIGITAL_LATCHED_DATA] = self.DIGITAL_LATCH_LOW
+                            # time stamp it
+                            updated_latch_entry[self.DIGITAL_TIME_STAMP] = time.time()
+                        else:
+                            pass
+                    elif latching_entry[self.LATCHED_THRESHOLD_TYPE] == self.DIGITAL_LATCH_HIGH:
+                        if port_data & 0x01:
+                            updated_latch_entry = latching_entry
+                            updated_latch_entry[self.LATCH_STATE] = self.LATCH_LATCHED
+                            updated_latch_entry[self.DIGITAL_LATCHED_DATA] = self.DIGITAL_LATCH_HIGH
+                            # time stamp it
+                            updated_latch_entry[self.DIGITAL_TIME_STAMP] = time.time()
+                        else:
+                            pass
+                else:
+                    pass
 
-            self.data_lock.release()
             # get the next data bit
             port_data >>= 1
 
@@ -513,9 +508,8 @@ class PyMataCommandHandler(threading.Thread):
         # set value so that it shows positive and negative values
         if val > 8192:
             val -= 16384
-        self.data_lock.acquire(True)
-        self.digital_response_table[data[self.RESPONSE_TABLE_MODE]][self.RESPONSE_TABLE_PIN_DATA_VALUE] = val
-        self.data_lock.release()
+        with self.data_lock:
+            self.digital_response_table[data[self.RESPONSE_TABLE_MODE]][self.RESPONSE_TABLE_PIN_DATA_VALUE] = val
 
     def sonar_data(self, data):
         """
@@ -526,20 +520,19 @@ class PyMataCommandHandler(threading.Thread):
         """
         val = int((data[self.MSB] << 7) + data[self.LSB])
         pin_number = data[0]
-        self.data_lock.acquire(True)
-        self.active_sonar_map[pin_number] = val
-        # also write it into the digital response table
-        self.digital_response_table[data[self.RESPONSE_TABLE_MODE]][self.RESPONSE_TABLE_PIN_DATA_VALUE] = val
-        self.data_lock.release()
+        with self.data_lock:
+            self.active_sonar_map[pin_number] = val
+            # also write it into the digital response table
+            self.digital_response_table[data[self.RESPONSE_TABLE_MODE]][self.RESPONSE_TABLE_PIN_DATA_VALUE] = val
 
     def get_analog_response_table(self):
         """
         This method returns the entire analog response table to the caller
         @return: The analog response table.
         """
-        self.data_lock.acquire(True)
-        data = self.analog_response_table
-        self.data_lock.release()
+        with self.data_lock:
+            data = self.analog_response_table
+        
         return data
 
     def get_digital_response_table(self):
@@ -547,9 +540,9 @@ class PyMataCommandHandler(threading.Thread):
         This method returns the entire digital response table to the caller
         @return: The digital response table.
         """
-        self.data_lock.acquire(True)
-        data = self.digital_response_table
-        self.data_lock.release()
+        with self.data_lock:
+            data = self.digital_response_table
+        
         return data
 
 
@@ -588,7 +581,7 @@ class PyMataCommandHandler(threading.Thread):
         for data in send_message:
             self.transport.write(data)
 
-    def system_reset(self):
+    def system_reset(self, reset_sleep_time=2):
         """
         Send the reset command to the Arduino.
         It resets the response tables to their initial values
@@ -599,27 +592,25 @@ class PyMataCommandHandler(threading.Thread):
 
         # response table re-initialization
         # for each pin set the mode to input and the last read data value to zero
-        self.data_lock.acquire(True)
+        with self.data_lock:
 
-        # remove all old entries from existing tables
-        for _ in range(len(self.digital_response_table)):
-            self.digital_response_table.pop()
+            # remove all old entries from existing tables
+            for _ in range(len(self.digital_response_table)):
+                self.digital_response_table.pop()
 
-        for _ in range(len(self.analog_response_table)):
-            self.analog_response_table.pop()
+            for _ in range(len(self.analog_response_table)):
+                self.analog_response_table.pop()
 
-        # reinitialize tables
-        for pin in range(0, self.total_pins_discovered):
-            response_entry = [self.INPUT, 0]
-            self.digital_response_table.append(response_entry)
+            # reinitialize tables
+            for pin in range(0, self.total_pins_discovered):
+                response_entry = [self.INPUT, 0]
+                self.digital_response_table.append(response_entry)
 
-        for pin in range(0, self.number_of_analog_pins_discovered):
-            response_entry = [self.INPUT, 0]
-            self.analog_response_table.append(response_entry)
+            for pin in range(0, self.number_of_analog_pins_discovered):
+                response_entry = [self.INPUT, 0]
+                self.analog_response_table.append(response_entry)
 
-        self.data_lock.release()
-
-        time.sleep(2)
+        time.sleep(reset_sleep_time)
 
 
     #noinspection PyMethodMayBeStatic
@@ -700,84 +691,102 @@ class PyMataCommandHandler(threading.Thread):
         self.command_dispatch.update({self.PIN_STATE_RESPONSE: [self.pin_state_response, 2]})
         self.command_dispatch.update({self.ANALOG_MAPPING_RESPONSE: [self.analog_mapping_response, 2]})
 
+        MAX_COMMAND_WAIT_TIME = 0.5
+        
         while not self.is_stopped():
+            
             if len(self.command_deque):
                 # get next byte from the deque and process it
                 data = self.command_deque.popleft()
 
                 # this list will be populated with the received data for the command
                 command_data = []
+                
+                command_start_time = time.time()
+                
+                try:    # The command handling may fail if we get invalid commands or data from
+                        # Firmata so put everything in a try block
+                
+                    # process sysex commands
+                    if data == self.START_SYSEX:
 
-                # process sysex commands
-                if data == self.START_SYSEX:
-                    # next char is the actual sysex command
-                    # wait until we can get data from the deque
-                    while len(self.command_deque) == 0:
-                        pass
-                    sysex_command = self.command_deque.popleft()
-                    # retrieve the associated command_dispatch entry for this command
-                    dispatch_entry = self.command_dispatch.get(sysex_command)
-
-                    # get a "pointer" to the method that will process this command
-                    method = dispatch_entry[0]
-
-                    # now get the rest of the data excluding the END_SYSEX byte
-                    end_of_sysex = False
-                    while not end_of_sysex:
-                        # wait for more data to arrive
-                        while len(self.command_deque) == 0:
+                        # next char is the actual sysex command
+                        # wait until we can get data from the deque
+                        while len(self.command_deque) == 0 and time.time() - command_start_time < MAX_COMMAND_WAIT_TIME:
                             pass
-                        data = self.command_deque.popleft()
-                        if data != self.END_SYSEX:
-                            command_data.append(data)
+                        sysex_command = self.command_deque.popleft()
+                        # retrieve the associated command_dispatch entry for this command
+                        dispatch_entry = self.command_dispatch.get(sysex_command)
+
+                        if dispatch_entry == None:
+                            print "Error: No dispatch entry for sysex_command {0:X}".format( sysex_command )
+                            continue
+                        
+                        # get a "pointer" to the method that will process this command
+                        method = dispatch_entry[0]
+
+                        # now get the rest of the data excluding the END_SYSEX byte
+                        end_of_sysex = False
+                        while not end_of_sysex and time.time() - command_start_time < MAX_COMMAND_WAIT_TIME:
+                            # wait for more data to arrive
+                            while len(self.command_deque) == 0 and time.time() - command_start_time < MAX_COMMAND_WAIT_TIME:
+                                pass
+                            data = self.command_deque.popleft()
+                            if data != self.END_SYSEX:
+                                command_data.append(data)
+                            else:
+                                end_of_sysex = True
+
+                                # invoke the method to process the command
+                                method(command_data)
+                                # go to the beginning of the loop to process the next command
+                        continue
+
+                    #is this a command byte in the range of 0x80-0xff - these are the non-sysex messages
+                    elif 0x80 <= data <= 0xff:
+                        # look up the method for the command in the command dispatch table
+                        # for the digital reporting the command value is modified with port number
+                        # the handler needs the port to properly process, so decode that from the command and
+                        # place in command_data
+                        if 0x90 <= data <= 0x9f:
+                            port = data & 0xf
+                            command_data.append(port)
+                            data = 0x90
+                        # the pin number for analog data is embedded in the command so, decode it
+                        elif 0xe0 <= data <= 0xef:
+                            pin = data & 0xf
+                            command_data.append(pin)
+                            data = 0xe0
                         else:
-                            end_of_sysex = True
-
-                            # invoke the method to process the command
-                            method(command_data)
-                            # go to the beginning of the loop to process the next command
-                    continue
-
-                #is this a command byte in the range of 0x80-0xff - these are the non-sysex messages
-                elif 0x80 <= data <= 0xff:
-                    # look up the method for the command in the command dispatch table
-                    # for the digital reporting the command value is modified with port number
-                    # the handler needs the port to properly process, so decode that from the command and
-                    # place in command_data
-                    if 0x90 <= data <= 0x9f:
-                        port = data & 0xf
-                        command_data.append(port)
-                        data = 0x90
-                    # the pin number for analog data is embedded in the command so, decode it
-                    elif 0xe0 <= data <= 0xef:
-                        pin = data & 0xf
-                        command_data.append(pin)
-                        data = 0xe0
-                    else:
-                        pass
-
-                    dispatch_entry = self.command_dispatch.get(data)
-
-                    # this calls the method retrieved from the dispatch table
-                    method = dispatch_entry[0]
-
-                    # get the number of parameters that this command provides
-                    num_args = dispatch_entry[1]
-
-                    #look at the number of args that the selected method requires
-                    # now get that number of bytes to pass to the called method
-                    for i in range(num_args):
-                        while len(self.command_deque) == 0:
                             pass
-                        data = self.command_deque.popleft()
-                        command_data.append(data)
-                        #go execute the command with the argument list
-                    method(command_data)
+   
+                        dispatch_entry = self.command_dispatch.get(data)
+                        if dispatch_entry == None:
+                            print "Error: No dispatch error for data {0:X}".format( data )
+                            continue
+  
+                        # this calls the method retrieved from the dispatch table
+                        method = dispatch_entry[0]
 
-                    # go to the beginning of the loop to process the next command
-                    continue
+                        # get the number of parameters that this command provides
+                        num_args = dispatch_entry[1]
 
+                        #look at the number of args that the selected method requires
+                        # now get that number of bytes to pass to the called method
+                        for i in range(num_args):
+                            while len(self.command_deque) == 0 and time.time() - command_start_time < MAX_COMMAND_WAIT_TIME:
+                                pass
+                            data = self.command_deque.popleft()
+                            command_data.append(data)
+                            #go execute the command with the argument list
+                        method(command_data)
 
+                        # go to the beginning of the loop to process the next command
+                        continue
+                
+                except Exception as e:
+                    
+                    print "Error: Caught exception in command handler -", e
 
 
 
