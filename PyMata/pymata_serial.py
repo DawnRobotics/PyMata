@@ -1,9 +1,8 @@
 __author__ = 'Copyright (c) 2013 Alan Yorinks All rights reserved.'
 """
-Created on Tue Sep  3 07:12:01 2013
 
 @author: Alan Yorinks
-Copyright (c) 2013-14 Alan Yorinks All rights reserved.
+Copyright (c) 2013-15 Alan Yorinks All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU  General Public
@@ -13,14 +12,17 @@ version 3 of the License, or (at your option) any later version.
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
+You should have received a copy of the GNU General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import threading
+import time
+import sys
+
 import serial
 
 
@@ -37,7 +39,6 @@ class PyMataSerial(threading.Thread):
     timeout = 1
     command_deque = None
 
-
     def __init__(self, port_id, command_deque):
         """
         Constructor:
@@ -49,30 +50,38 @@ class PyMataSerial(threading.Thread):
         threading.Thread.__init__(self)
         self.daemon = True
         self.arduino = serial.Serial(self.port_id, self.baud_rate,
-                                     timeout=int(self.timeout))
-                                     
+                                     timeout=int(self.timeout), writeTimeout=0)
+
         self.stop_event = threading.Event()
 
-    def stop( self ):
+        # without this, running python 3.4 is extremely sluggish
+        if sys.platform == 'linux':
+            # noinspection PyUnresolvedReferences
+            self.arduino.nonblocking()
+
+    def stop(self):
         self.stop_event.set()
 
-    def is_stopped( self ):
+    def is_stopped(self):
         return self.stop_event.is_set()
 
-    def open(self):
+    def open(self, verbose):
         """
         open the serial port using the configuration data
         returns a reference to this instance
         """
         # open a serial port
-        print '\nOpening Arduino Serial port %s ' % self.port_id
+        if verbose:
+            print('\nOpening Arduino Serial port %s ' % self.port_id)
 
         try:
 
             # in case the port is already open, let's close it and then
-            #reopen it
+            # reopen it
             self.arduino.close()
+            time.sleep(1)
             self.arduino.open()
+            time.sleep(1)
             return self.arduino
 
         except Exception:
@@ -84,15 +93,22 @@ class PyMataSerial(threading.Thread):
             Close the serial port
             return: None
         """
-        self.arduino.close()
+        try:
+            self.arduino.close()
+        except OSError:
+            pass
 
     def write(self, data):
         """
             write the data to the serial port
             return: None
         """
-        self.arduino.write(data)
-        
+        if sys.version_info[0] < 3:
+            self.arduino.write(data)
+        else:
+            self.arduino.write(bytes([ord(data)]))
+
+    # noinspection PyExceptClausesOrder
     def run(self):
         """
         This method continually runs. If an incoming character is available on the serial port
@@ -108,7 +124,8 @@ class PyMataSerial(threading.Thread):
                     self.command_deque.append(ord(c))
             except OSError:
                 pass
-            
+            except IOError:
+                self.stop()
         self.close()
 
 

@@ -1,11 +1,13 @@
 PyMata
 ======
 
-Version 1.54_DR_1
------------------
+PyMata is a high performance, multi-threaded, non-blocking Python client for the Firmata Protocol that supports
+the complete StandardFirmata protocol.
 
-This is a fork made from the mainline of PyMata, for changes made by Dawn Robotics Ltd. If the changes pass muster, then hopefully 
-they willl be merged back into the mainline at some point. :)
+Dawn Robotics Fork
+------------------
+
+This is a fork made from the mainline of PyMata, for changes made by Dawn Robotics Ltd.
 
 The main change is that if you have [Ino](http://inotool.org/) installed on your computer then when you initialise PyMata, if Firmata is not 
 already installed on your Arduino, then the Firmata sketch will be automagically compiled and uploaded.
@@ -16,98 +18,85 @@ To install Ino on linux, run the following commands
     sudo apt-get install python-pip python-dev python-serial
     sudo pip install ino
 
-Version 1.54
-------------
-Support for monitoring up to 6 simultaneous HC-SR04 Ping Devices. This feature requires the supplied Arduino sketch
-called FirmataPlus.
-
-To compile FirmataPlus, the NewPing library needs to be installed: https://code.google.com/p/arduino-new-ping/
-
-After downloading, one of the library files needs modification to successfully compile:
-https://code.google.com/p/arduino-new-ping/wiki/HELP_Error_Vector_7_When_Compiling
-
-FirmataPlus requires the use of the Arduino IDE version 1.5.5 or newer.
-
-FirmataPlus removed support for rotary encoder, because the library was limited to the Uno. It is still
-available with the supplied NotSoStandardFirmata Arduino sketch.
-
-Version 1.53
-------------
-Corrected digital write  to only affect one bit in the port register. Previously all bits were affected
-as the result of a write.
-
-Support for the additional pins of the Mega 2560 R3 has been added.
-
-Version 1.52
-------------
-
-Fixed IGNORE pin mode to be correct value in pymata.py
-
-Version 1.51
-------------
-
-Two new features have been added.
-
-1. The PyMata version number can be retrieved using get_pymata_version().
-
-2. Analog and Digital Software Data Latches have been added.
-   Firmata normally reports changes to values in input data for both analog and digital pins. The data latch feature allows the user to specify a threshold value for the pin and to have the data value stored and time stamped.
-   When latched data is read, the latch registers are cleared and the user can re-arm the latching mechanism.
-
-   The new methods for latched data contained in pymata.py are:
-
-       set_analog_latch(pin, threshold_type, threshold_value) - arm latching for the selected pin and select the threshold type (>=, <=, >, <) and the threshold value (0-1023) to be detected and stored.
-
-       set_digital_latch(pin, threshold_type)  - arm latching by selecting the pin and the threshold type (HIGH or LOW) to be detected and stored.
-
-       get_analog_latch_data(pin) - returns a list with: [pin number, latching_state (ignore, armed, or latched), the latched data, time stamp of latching event]
-
-       get_digital_latch_data(pin) - returns a list with: [pin number, latching_state (ignore, armed, or latched), the latched data, time stamp of latching event]
+Standard README
+---------------
+    
+A new version for Python 3.4.3, pymata_aio, can be found [here](https://github.com/MrYsLab/pymata-aio). 
 
 
-       This feature is useful when the client program is blocked or is polling too slowly to detect a data change. For example, with a momentary switch, the switch may have been closed, but when the client goes to read the switch value it has opened again.
-       For analog data, the client may want to keep track of the occasional data threshold crossing and does not wish to constantly poll to detect this change.
+##Major features
+* __Implements the entire Firmata 2.4.1 protocol.__
+* __Python 2.7+ and Python 3.4+__ compatibility through a shared code set. (If you are running Python 3.4 on Linux, please see note below).
+* Easy to use and intuitive __API__. You can view the [PyMata API Documentation here](http://htmlpreview.github.com/?https://github.com/MrYsLab/PyMata/blob/master/documentation/html/PyMata.pymata.PyMata-class.html) or view in the Documentation/html directory.
+* Custom support for __stepper motors, Sonar Ping Devices (HC-SRO4), Piezo devices and Rotary Encoders__.
+* __Wiring diagrams__ are provided for all examples in the examples directory.
+* Digial and Analog __Transient Signal Monitoring Via Data Latches:__
+  * They provide "one-shot" notification when either a digital or analog pin meets a user defined threshold.
+  * Analog latches compare each data change to a user specified value.
+    * Comparison operators are <, >, <= and >=
+  * Digital latches compare a data change to either a high or low, specified by the user.
+  * Latches can easily be re-armed to detect the next transient data change.
+  * Latches can be either manually read or a callback can be associated with a latch for immediate notification.
+* Optional __callbacks__ provide asynchronous notification of data updates.
 
-
-Also, the entire package is now fully documented in HTML. Go to the documentation/html directory and open up index.html in your browser to view it.
-
-
-What is PyMata ?
---------------
-
-Harness the raw power of Standard Firmata without having to master the complexities of Standard Firmata's communication protocol. The PyMata class library is an easy to use, high performance abstraction layer for Standard Firmata. A fully documented, straight forward API is provided so that you can quickly code your application.
-
-Epydoc generated API documentation is provided in html format. The source code is fully commented to help make extending PyMata a straight forward task.
-
-
-Fully commented example applications are provided to help accelerate your development efforts.
-
-Before using PyMata, PySerial needs to be installed. PySerial installation instructions may be found at http://pyserial.sourceforge.net/.
-
-If you are CodeShield user, an enhanced version of Standard Firmata, called NotSoStandard Firmata is provided as part of this package. It adds tone generation and rotary support functionality. NOTE: currently, rotary encoder support is not available for the Arduino Leonardo. To install the libraries in Arduino for rotary encoder support, please visit these links:
-
-http://code.google.com/p/adaencoder/
-
-http://code.google.com/p/oopinchangeint/
+## Callbacks
+Check out the example code on the [wiki](https://github.com/MrYsLab/PyMata/wiki).
+  * Digital input pins.
+  * Analog input pins.
+  * Encoder changes.
+  * I2C read data changes.
+  * SONAR (HC-SR04) distance changes.
+  * Analog latch condition achieved.
+  * Digital latch condition achieved.
+  * Callbacks return data reports in a single list format.
+  * Polling methods and callbacks are available simultaneously and can be used in a mixed polled/callback environment.
+  * Callbacks return data in a single list.
+  
+### The callback data return values
+  
+| Callback Type | List Element 0 | List Element 1 | List Element 2 | List Element 3 |
+| ------------- | -------------- | -------------- | -------------- | -------------- |
+| Analog| ANALOG MODE|Pin Number|Data Value|Not Applicable
+| Digital|DIGITAL MODE|Pin Number|Data Value|Not Applicable
+|I2C|I2C MODE|I2C Device Address|Data Value|Not Applicable
+|Sonar|Trigger Pin|Distance in Centimeters|Not Applicable|Not Applicatble
+| Encoder|Encoder MODE|Pin Number|Data Value|Not Applicable
+| Latched Analog| LATCHED ANALOG MODE|Pin Number|Data Value|Time Stamp
+| Latched Digital|LATCHED DIGITAL MODE|Pin Number|Data Value|Time Stamp
 
 
 
+## Control-C Signal Handler
+Below is a sample Control-C signal handler that can be added to a PyMata Application.
+It suppresses exceptions being reported as a result of the user entering a Control-C to abort the application.
 
-Included Examples
------------------
+```python
+import sys
+import signal
+# followed by another imports your application requires
 
-pymata_basics - a simple client application to communicate with an Arduino board
+# create a PyMata instance
+# set the COM port string specifically for your platform
+board = PyMata("/dev/ttyACM0")
 
-pymata_i2c_write - this contains both a control layer for the Adafruit Bi-Color 8x8 LED Matrix and a demo program
+# signal handler function called when Control-C occurs
+def signal_handler(signal, frame):
+    print('You pressed Ctrl+C!!!!')
+    if board != None:
+        board.reset()
+    sys.exit(0)
 
-pymata_i2c_read -  a demo program to read from a SparkFun TMP102 Breakout temperature device.
+# listen for SIGINT
+signal.signal(signal.SIGINT, signal_handler)
 
-pymata_software_data_latch - demo program that illustrates the use of the data latching feature
+# Your Application Continues Below This Point
+```
+
+## Misc
+- Want to extend PyMata? See [Our Instructables Article](http://www.instructables.com/id/Going-Beyond-StandardFirmata-Adding-New-Device-Sup/) explaining how stepper motor support was added. Use it as a guide to customize PyMata for your own needs.
+- [Check Out Mr. Y's Blog Here](http://mryslab.blogspot.com/) for all the latest news!
 
 
-Standard PyMata Import Line
----------------------------
-from PyMata.pymata import PyMata
-
-
-
+# Special Note For Linux Users Wishing to Use Python 3.4
+# [pymata_aio is now available and for Python 3.4.3.](https://github.com/MrYsLab/pymata-aio)
+# [Check out the pymata_aio wiki!](https://github.com/MrYsLab/pymata-aio/wiki)
