@@ -122,7 +122,7 @@ class PyMata:
 
     #noinspection PyPep8Naming
     def __init__(self, port_id='/dev/ttyACM0', max_wait_time=30, 
-        program_if_needed=True, board_model="uno",
+        program_if_needed=True, force_programming=False, board_model="uno",
         bluetooth=True, verbose=True):
         """
         The constructor tries to connect to an Arduino or Arduino compatible running
@@ -132,6 +132,8 @@ class PyMata:
         @param max_wait_time: Maximum time to wait when trying to connect to Firmata
         @param program_if_needed: Attempt to upload the Firmata sketch if it's not found
             on the Arduino.
+        @param force_programming: If set, the Firmata sketch will always be uploaded. This
+            is useful if you need to guarantee that the correct version of Firmata is loaded on the board.
         @param board_model: The type of Arduino being used. This is only needed if the
             board is to be programmed. Run 'ino list-models' at the command line for a
             list of available boards.
@@ -139,11 +141,16 @@ class PyMata:
         @param verbose: If set to False, the status print statements are suppressed.
         """
         
+        if force_programming:
+            if not self.upload_firmata_sketch( port_id, board_model ):
+                    
+                    raise Exception( "Unable to upload Firmata sketch" )
+        
         if not self.connect_to_firmata( port_id, max_wait_time, bluetooth, verbose ):
             
             able_to_connect = False
             
-            if program_if_needed:
+            if program_if_needed and not force_programming:
                 if not self.upload_firmata_sketch( port_id, board_model ):
                     
                     raise Exception( "Unable to upload Firmata sketch" )
