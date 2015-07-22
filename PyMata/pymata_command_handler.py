@@ -300,7 +300,7 @@ class PyMataCommandHandler(threading.Thread):
         """
         This method "arms" a pin to allow data latching for the pin.
         @param pin: digital pin number
-        @param threshold_type: DIGITAL_LATCH_HIGH | DIGITAL_LATCH_LOW
+        @param thresho ld_type: DIGITAL_LATCH_HIGH | DIGITAL_LATCH_LOW
         @param cb: User provided callback function
         """
         with self.pymata.data_lock:
@@ -775,24 +775,25 @@ class PyMataCommandHandler(threading.Thread):
                     # retrieve the associated command_dispatch entry for this command
                     dispatch_entry = self.command_dispatch.get(sysex_command)
 
-                    # get a "pointer" to the method that will process this command
-                    method = dispatch_entry[0]
+                    if dispatch_entry != None:
+                        # get a "pointer" to the method that will process this command
+                        method = dispatch_entry[0]
 
-                    # now get the rest of the data excluding the END_SYSEX byte
-                    end_of_sysex = False
-                    while not end_of_sysex:
-                        # wait for more data to arrive
-                        while len(self.pymata.command_deque) == 0:
-                            pass
-                        data = self.pymata.command_deque.popleft()
-                        if data != self.END_SYSEX:
-                            command_data.append(data)
-                        else:
-                            end_of_sysex = True
+                        # now get the rest of the data excluding the END_SYSEX byte
+                        end_of_sysex = False
+                        while not end_of_sysex:
+                            # wait for more data to arrive
+                            while len(self.pymata.command_deque) == 0:
+                                pass
+                            data = self.pymata.command_deque.popleft()
+                            if data != self.END_SYSEX:
+                                command_data.append(data)
+                            else:
+                                end_of_sysex = True
 
-                            # invoke the method to process the command
-                            method(command_data)
-                            # go to the beginning of the loop to process the next command
+                                # invoke the method to process the command
+                                method(command_data)
+                                # go to the beginning of the loop to process the next command
                     continue
 
                 #is this a command byte in the range of 0x80-0xff - these are the non-sysex messages
@@ -816,21 +817,22 @@ class PyMataCommandHandler(threading.Thread):
 
                     dispatch_entry = self.command_dispatch.get(data)
 
-                    # this calls the method retrieved from the dispatch table
-                    method = dispatch_entry[0]
+                    if dispatch_entry != None:
+                        # this calls the method retrieved from the dispatch table
+                        method = dispatch_entry[0]
 
-                    # get the number of parameters that this command provides
-                    num_args = dispatch_entry[1]
+                        # get the number of parameters that this command provides
+                        num_args = dispatch_entry[1]
 
-                    #look at the number of args that the selected method requires
-                    # now get that number of bytes to pass to the called method
-                    for i in range(num_args):
-                        while len(self.pymata.command_deque) == 0:
-                            pass
-                        data = self.pymata.command_deque.popleft()
-                        command_data.append(data)
-                        #go execute the command with the argument list
-                    method(command_data)
+                        #look at the number of args that the selected method requires
+                        # now get that number of bytes to pass to the called method
+                        for i in range(num_args):
+                            while len(self.pymata.command_deque) == 0:
+                                pass
+                            data = self.pymata.command_deque.popleft()
+                            command_data.append(data)
+                            #go execute the command with the argument list
+                        method(command_data)
 
                     # go to the beginning of the loop to process the next command
                     continue
