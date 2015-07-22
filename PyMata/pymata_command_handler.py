@@ -755,7 +755,10 @@ class PyMataCommandHandler(threading.Thread):
         self.command_dispatch.update({self.STEPPER_DATA: [self.stepper_version_response, 2]})
 
         while not self.is_stopped():
-            if len(self.pymata.command_deque):
+            
+            time.sleep( 0.01 )  # Sleep to prevent 100% CPU usage
+            
+            while len(self.pymata.command_deque) and not self.is_stopped():
                 # get next byte from the deque and process it
                 data = self.pymata.command_deque.popleft()
 

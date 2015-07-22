@@ -119,9 +119,12 @@ class PyMataSerial(threading.Thread):
             # we can get an OSError: [Errno9] Bad file descriptor when shutting down
             # just ignore it
             try:
-                if self.arduino.inWaiting():
+                time.sleep( 0.01 )  # Sleep to prevent 100% CPU usage
+                
+                while self.arduino.inWaiting() and not self.is_stopped():
                     c = self.arduino.read()
                     self.command_deque.append(ord(c))
+                
             except OSError:
                 pass
             except IOError:

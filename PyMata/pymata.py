@@ -34,19 +34,13 @@ SKETCHES_DIR = SCRIPT_PATH + "/ArduinoSketch"
 if not os.path.exists( SKETCHES_DIR ):
     SKETCHES_DIR = SCRIPT_PATH + "/../ArduinoSketch"    # Assume library hasn't been installed
 
-STANDARD_FIRMATA_DIR = SKETCHES_DIR + "/Firmata/examples/StandardFirmata"
-STANDARD_FIRMATA_LIBS = [
-    SKETCHES_DIR + "/Firmata"
-]
-
-NOT_SO_STANDARD_FIRMATA_DIR = SKETCHES_DIR + "/NotSoStandardFirmata/examples/NotSoStandardFirmata"
-NOT_SO_STANDARD_FIRMATA_LIBS = [
+FIRMATA_DIR = SKETCHES_DIR + "/FirmataPlus/examples/FirmataPlus"
+FIRMATA_LIBS = [
     SKETCHES_DIR + "/AdaEncoder",
-    SKETCHES_DIR + "/ByteBuffer",
     SKETCHES_DIR + "/cbiface",
     SKETCHES_DIR + "/cppfix",
-    SKETCHES_DIR + "/MemoryFree",
-    SKETCHES_DIR + "/NotSoStandardFirmata",
+    SKETCHES_DIR + "/FirmataPlus",
+    SKETCHES_DIR + "/NewPing",
     SKETCHES_DIR + "/ooPinChangeInt"
 ]
 
@@ -126,12 +120,9 @@ class PyMata:
     digital_output_port_pins = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
 
-    STANDARD_FIRMATA = ( STANDARD_FIRMATA_DIR, STANDARD_FIRMATA_LIBS )
-    NOT_SO_STANDARD_FIRMATA = ( NOT_SO_STANDARD_FIRMATA_DIR, NOT_SO_STANDARD_FIRMATA_LIBS )
-
     #noinspection PyPep8Naming
     def __init__(self, port_id='/dev/ttyACM0', max_wait_time=30, 
-        program_if_needed=True, board_model="uno", firmata_type=NOT_SO_STANDARD_FIRMATA,
+        program_if_needed=True, board_model="uno",
         bluetooth=True, verbose=True):
         """
         The constructor tries to connect to an Arduino or Arduino compatible running
@@ -144,8 +135,6 @@ class PyMata:
         @param board_model: The type of Arduino being used. This is only needed if the
             board is to be programmed. Run 'ino list-models' at the command line for a
             list of available boards.
-        @param firmata_type: A directory containing the firmata sketch, and a list of supporting
-            libs that are used when uploading firmata
         @param bluetooth: Sets start up delays for bluetooth connectivity. Set to False for faster start up.
         @param verbose: If set to False, the status print statements are suppressed.
         """
@@ -155,7 +144,7 @@ class PyMata:
             able_to_connect = False
             
             if program_if_needed:
-                if not self.upload_firmata_sketch( port_id, board_model, firmata_type ):
+                if not self.upload_firmata_sketch( port_id, board_model ):
                     
                     raise Exception( "Unable to upload Firmata sketch" )
                 
@@ -257,7 +246,7 @@ class PyMata:
                 print('\nPlease wait while Arduino is being detected. This can take up to {0} seconds ...'.format( max_wait_time ))
 
             # perform board auto discovery
-            if not self._command_handler.auto_discover_board(self.verbose):
+            if not self._command_handler.auto_discover_board(self.verbose,max_wait_time):
                 # board was not found so shutdown
                 if self.verbose:
                     print("Board Auto Discovery Failed!, Shutting Down")
@@ -276,14 +265,13 @@ class PyMata:
 
         return True
 
-    def upload_firmata_sketch( self, port_id, board_model, firmata_type ):
+    def upload_firmata_sketch( self, port_id, board_model ):
         """
         Uses the Ino library to upload Firmata to the Arduino attached to the given serial port
         @param port_id: The serial port to use
         """
         
-        firmata_dir, firmata_libs = firmata_type
-        return ino_uploader.upload( firmata_dir, port_id, board_model, firmata_libs )
+        return ino_uploader.upload( FIRMATA_DIR, port_id, board_model, FIRMATA_LIBS )
             
     def analog_mapping_query(self):
         """
